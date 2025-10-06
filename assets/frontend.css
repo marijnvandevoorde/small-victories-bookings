@@ -1,0 +1,214 @@
+.timeslot-form-container {
+    max-width: 800px;
+    margin: 20px 0;
+}
+
+.timeslot-form {
+    background: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.timeslot-form-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.timeslot-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.timeslot-field label {
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: #333;
+    font-size: 15px;
+}
+
+.timeslot-field input[type=text], .timeslot-field input[type=email] {
+    padding: 20px 16px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 15px;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.timeslot-field input:hover {
+    border-color: #2271b1;
+}
+
+.timeslot-field input:focus {
+    outline: none;
+    border-color: #2271b1;
+    box-shadow: 0 4px 12px rgba(34, 113, 177, 0.15);
+}
+
+.timeslot-options-label {
+    margin-bottom: 15px;
+}
+
+.timeslot-options-label label {
+    font-weight: 600;
+    color: #333;
+    font-size: 16px;
+}
+
+.timeslot-options {
+    display: grid;
+    grid-template-columns: repeat(var(--columns, 2), 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.timeslot-option {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    background: white;
+}
+
+.timeslot-option:hover:not(.timeslot-option-full) {
+    border-color: #2271b1;
+    box-shadow: 0 4px 12px rgba(34, 113, 177, 0.15);
+}
+
+.timeslot-option-full {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f9f9f9;
+}
+
+.timeslot-option label {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+}
+
+.timeslot-option-full label {
+    cursor: not-allowed;
+}
+
+/* Hide default checkbox and create custom one */
+.timeslot-option input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+    margin: 0;
+}
+
+.timeslot-option input[type="checkbox"]:hover {
+    border-color: #2271b1;
+}
+
+.timeslot-option input[type="checkbox"]:checked {
+    background: #2271b1;
+    border-color: #2271b1;
+}
+
+.timeslot-option input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.timeslot-option-content {
+    flex: 1;
+}
+
+.timeslot-option-name {
+    font-weight: 600;
+    color: #333;
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+.timeslot-option-availability {
+    font-size: 13px;
+    color: #666;
+}
+
+.timeslot-full-text {
+    color: #d63638;
+    font-weight: 600;
+}
+
+.timeslot-available-text {
+    color: #008a20;
+    font-weight: 500;
+}
+
+.timeslot-form-message {
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    border-radius: 4px;
+    display: none;
+}
+
+.timeslot-form-message.success {
+    display: block;
+    background: #d7f7e8;
+    color: #006b3d;
+    border: 1px solid #00a32a;
+}
+
+.timeslot-form-message.error {
+    display: block;
+    background: #fcf0f1;
+    color: #8b0000;
+    border: 1px solid #d63638;
+}
+
+.timeslot-form-submit {
+    text-align: center;
+}
+
+.timeslot-submit-button {
+    background: #2271b1;
+    color: #fff;
+    border: none;
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.timeslot-submit-button:hover:not(:disabled) {
+    background: #135e96;
+}
+
+.timeslot-submit-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .timeslot-form-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .timeslot-options {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,74 @@
+# Dutch translation for Small Victories Bookings
+# Copyright (C) 2025 Small Victories
+# This file is distributed under the same license as the Small Victories Bookings plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Small Victories Bookings 1.0.4\n"
+"Report-Msgid-Bugs-To: https://small-victories.co\n"
+"Last-Translator: \n"
+"Language-Team: Dutch\n"
+"Language: nl_NL\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2025-01-01 00:00+0000\n"
+"PO-Revision-Date: 2025-01-01 00:00+0000\n"
+"X-Generator: WordPress\n"
+"X-Domain: small-victories-bookings\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: includes/frontend-form.php:14
+msgid "Form not found."
+msgstr "Formulier niet gevonden."
+
+#: includes/frontend-form.php:29
+msgid "No options available for this form."
+msgstr "Geen opties beschikbaar voor dit formulier."
+
+#: includes/frontend-form.php:38
+msgid "Name *"
+msgstr "Naam *"
+
+#: includes/frontend-form.php:43
+msgid "Email *"
+msgstr "E-mail *"
+
+#: includes/frontend-form.php:49
+msgid "Select Options *"
+msgstr "Selecteer opties *"
+
+#: includes/frontend-form.php:68
+msgid "Full"
+msgstr "Vol"
+
+#: includes/frontend-form.php:70
+msgid "available"
+msgstr "beschikbaar"
+
+#: includes/frontend-form.php:82
+msgid "Submit"
+msgstr "Verzenden"
+
+#: small-victories-bookings.php:168
+msgid "Please specify a form ID."
+msgstr "Geef een formulier-ID op."
+
+#: small-victories-bookings.php:187
+msgid "Please fill in all fields and select at least one option."
+msgstr "Vul alle velden in en selecteer minimaal één optie."
+
+#: small-victories-bookings.php:192
+msgid "Please enter a valid email address."
+msgstr "Voer een geldig e-mailadres in."
+
+#: small-victories-bookings.php:208
+msgid "Invalid option selected."
+msgstr "Ongeldige optie geselecteerd."
+
+#: small-victories-bookings.php:219
+msgid "Sorry, '%s' is no longer available."
+msgstr "Sorry, '%s' is niet meer beschikbaar."
+
+#: small-victories-bookings.php:252
+msgid "Thank you! Your submission has been received."
+msgstr "Bedankt! Uw inzending is ontvangen."

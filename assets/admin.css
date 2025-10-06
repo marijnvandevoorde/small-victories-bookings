@@ -1,0 +1,55 @@
+/* Admin styles for Timeslot Bookings plugin */
+
+.timeslot-admin-container {
+    margin: 20px 0;
+}
+
+.option-row {
+    margin-bottom: 10px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.option-row input[type="text"],
+.option-row input[type="number"] {
+    padding: 6px 10px;
+}
+
+.option-row .remove-option {
+    color: #d63638;
+}
+
+.option-row .remove-option:hover {
+    color: #8b0000;
+}
+
+#add-option {
+    margin-top: 10px;
+}
+
+.timeslot-shortcode-display {
+    margin-top: 30px;
+    padding: 15px;
+    background: #f0f0f1;
+    border-left: 4px solid #2271b1;
+}
+
+.timeslot-shortcode-display h3 {
+    margin-top: 0;
+}
+
+.timeslot-shortcode-display code {
+    font-size: 14px;
+    background: #fff;
+    padding: 5px 10px;
+    border-radius: 3px;
+}
+
+.timeslot-batch-import {
+    margin-bottom: 20px;
+}
+
+.timeslot-batch-import textarea {
+    font-family: monospace;
+}

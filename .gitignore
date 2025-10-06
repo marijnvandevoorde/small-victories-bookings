@@ -1,0 +1,15 @@
+# WordPress
+*.log
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Compiled files
+*.zip
+
+# Temporary files
+*~
+*.swp
+*.swo

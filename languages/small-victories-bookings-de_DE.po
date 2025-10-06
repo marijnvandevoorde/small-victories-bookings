@@ -1,0 +1,74 @@
+# German translation for Small Victories Bookings
+# Copyright (C) 2025 Small Victories
+# This file is distributed under the same license as the Small Victories Bookings plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Small Victories Bookings 1.0.4\n"
+"Report-Msgid-Bugs-To: https://small-victories.co\n"
+"Last-Translator: \n"
+"Language-Team: German\n"
+"Language: de_DE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2025-01-01 00:00+0000\n"
+"PO-Revision-Date: 2025-01-01 00:00+0000\n"
+"X-Generator: WordPress\n"
+"X-Domain: small-victories-bookings\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: includes/frontend-form.php:14
+msgid "Form not found."
+msgstr "Formular nicht gefunden."
+
+#: includes/frontend-form.php:29
+msgid "No options available for this form."
+msgstr "Keine Optionen für dieses Formular verfügbar."
+
+#: includes/frontend-form.php:38
+msgid "Name *"
+msgstr "Name *"
+
+#: includes/frontend-form.php:43
+msgid "Email *"
+msgstr "E-Mail *"
+
+#: includes/frontend-form.php:49
+msgid "Select Options *"
+msgstr "Optionen auswählen *"
+
+#: includes/frontend-form.php:68
+msgid "Full"
+msgstr "Voll"
+
+#: includes/frontend-form.php:70
+msgid "available"
+msgstr "verfügbar"
+
+#: includes/frontend-form.php:82
+msgid "Submit"
+msgstr "Absenden"
+
+#: small-victories-bookings.php:168
+msgid "Please specify a form ID."
+msgstr "Bitte geben Sie eine Formular-ID an."
+
+#: small-victories-bookings.php:187
+msgid "Please fill in all fields and select at least one option."
+msgstr "Bitte füllen Sie alle Felder aus und wählen Sie mindestens eine Option."
+
+#: small-victories-bookings.php:192
+msgid "Please enter a valid email address."
+msgstr "Bitte geben Sie eine gültige E-Mail-Adresse ein."
+
+#: small-victories-bookings.php:208
+msgid "Invalid option selected."
+msgstr "Ungültige Option ausgewählt."
+
+#: small-victories-bookings.php:219
+msgid "Sorry, '%s' is no longer available."
+msgstr "Entschuldigung, '%s' ist nicht mehr verfügbar."
+
+#: small-victories-bookings.php:252
+msgid "Thank you! Your submission has been received."
+msgstr "Vielen Dank! Ihre Eingabe wurde empfangen."
