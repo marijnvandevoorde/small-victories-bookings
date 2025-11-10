@@ -39,6 +39,7 @@ class TimeslotBookings {
         add_action('wp_ajax_timeslot_submit', array($this, 'handle_submission'));
         add_action('wp_ajax_nopriv_timeslot_submit', array($this, 'handle_submission'));
         add_action('admin_init', array($this, 'handle_csv_export'));
+        add_action('wp_dashboard_setup', array($this, 'add_dashboard_widget'));
         add_shortcode('timeslot_form', array($this, 'render_shortcode'));
     }
 
@@ -135,11 +136,15 @@ class TimeslotBookings {
     }
 
     public function enqueue_admin_scripts($hook) {
-        if (strpos($hook, 'sv-bookings') === false) {
-            return;
+        // Load CSS on dashboard and plugin pages
+        if ($hook === 'index.php' || strpos($hook, 'sv-bookings') !== false) {
+            wp_enqueue_style('timeslot-admin', TIMESLOT_PLUGIN_URL . 'assets/admin.css', array(), TIMESLOT_VERSION);
         }
-        wp_enqueue_style('timeslot-admin', TIMESLOT_PLUGIN_URL . 'assets/admin.css', array(), TIMESLOT_VERSION);
-        wp_enqueue_script('timeslot-admin', TIMESLOT_PLUGIN_URL . 'assets/admin.js', array('jquery'), TIMESLOT_VERSION, true);
+
+        // Load JS only on plugin pages
+        if (strpos($hook, 'sv-bookings') !== false) {
+            wp_enqueue_script('timeslot-admin', TIMESLOT_PLUGIN_URL . 'assets/admin.js', array('jquery'), TIMESLOT_VERSION, true);
+        }
     }
 
     public function enqueue_frontend_scripts() {
@@ -329,6 +334,68 @@ class TimeslotBookings {
         }
         fclose($output);
         exit;
+    }
+
+    public function add_dashboard_widget() {
+        wp_add_dashboard_widget(
+            'sv_bookings_recent_submissions',
+            __('Recent Bookings', 'small-victories-bookings'),
+            array($this, 'render_dashboard_widget')
+        );
+    }
+
+    public function render_dashboard_widget() {
+        global $wpdb;
+
+        // Get the last 5 submissions across all forms
+        $submissions = $wpdb->get_results(
+            "SELECT s.id, s.response, s.submitted_at, s.form_id, f.name as form_name
+             FROM {$wpdb->prefix}timeslot_submissions s
+             INNER JOIN {$wpdb->prefix}timeslot_forms f ON s.form_id = f.id
+             ORDER BY s.submitted_at DESC
+             LIMIT 5"
+        );
+
+        if (empty($submissions)) {
+            echo '<p>' . __('No submissions yet.', 'small-victories-bookings') . '</p>';
+            return;
+        }
+
+        echo '<div class="sv-bookings-widget">';
+        echo '<ul class="sv-bookings-list">';
+
+        foreach ($submissions as $submission) {
+            $response = json_decode($submission->response, true);
+
+            // Try to get a name from the response
+            $name = '';
+            if (isset($response['Name'])) {
+                $name = $response['Name'];
+            } elseif (isset($response['name'])) {
+                $name = $response['name'];
+            } else {
+                // Use the first field value as the name
+                $name = !empty($response) ? reset($response) : __('Unknown', 'small-victories-bookings');
+            }
+
+            $date = mysql2date(get_option('date_format') . ' ' . get_option('time_format'), $submission->submitted_at);
+
+            echo '<li class="sv-booking-item">';
+            echo '<strong>' . esc_html($name) . '</strong>';
+            echo '<br><span class="sv-booking-meta">';
+            echo esc_html($submission->form_name) . ' &mdash; ' . esc_html($date);
+            echo '</span>';
+            echo '</li>';
+        }
+
+        echo '</ul>';
+
+        // Add link to view all submissions
+        $submissions_url = admin_url('admin.php?page=sv-bookings-submissions');
+        echo '<p class="sv-bookings-footer">';
+        echo '<a href="' . esc_url($submissions_url) . '">' . __('View all submissions', 'small-victories-bookings') . ' &rarr;</a>';
+        echo '</p>';
+        echo '</div>';
     }
 
     public function check_and_run_migrations() {

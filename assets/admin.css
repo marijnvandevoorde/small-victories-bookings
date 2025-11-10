@@ -53,3 +53,45 @@
 .timeslot-batch-import textarea {
     font-family: monospace;
 }
+
+/* Dashboard widget styles */
+.sv-bookings-widget {
+    margin: -12px;
+}
+
+.sv-bookings-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.sv-booking-item {
+    padding: 12px;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.sv-booking-item:last-child {
+    border-bottom: none;
+}
+
+.sv-booking-item strong {
+    font-size: 14px;
+    color: #1d2327;
+}
+
+.sv-booking-meta {
+    font-size: 12px;
+    color: #646970;
+}
+
+.sv-bookings-footer {
+    margin: 0;
+    padding: 12px;
+    background: #f6f7f7;
+    border-top: 1px solid #e0e0e0;
+}
+
+.sv-bookings-footer a {
+    text-decoration: none;
+    font-weight: 500;
+}
