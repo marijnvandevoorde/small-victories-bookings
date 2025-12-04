@@ -14,8 +14,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('TIMESLOT_VERSION', '1.0.4');
-define('TIMESLOT_DB_VERSION', '2'); // Database schema version
+define('TIMESLOT_VERSION', '1.0.5');
+define('TIMESLOT_DB_VERSION', '3'); // Database schema version
 define('TIMESLOT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('TIMESLOT_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -63,6 +63,7 @@ class TimeslotBookings {
             id bigint(20) NOT NULL AUTO_INCREMENT,
             name varchar(255) NOT NULL,
             columns int(11) DEFAULT 2,
+            email_template LONGTEXT NULL,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (id)
         ) $charset_collate;";
@@ -256,7 +257,60 @@ class TimeslotBookings {
 
         $wpdb->query('COMMIT');
 
+        // Send email notification
+        $this->send_booking_email($form_id, $sanitized_responses, $options);
+
         wp_send_json_success(array('message' => __('Thank you! Your submission has been received.', 'small-victories-bookings')));
+    }
+
+    private function send_booking_email($form_id, $field_responses, $selected_option_ids) {
+        global $wpdb;
+
+        // Get form details including email template
+        $form = $wpdb->get_row($wpdb->prepare(
+            "SELECT name, email_template FROM {$wpdb->prefix}timeslot_forms WHERE id = %d",
+            $form_id
+        ));
+
+        if (!$form || empty($form->email_template)) {
+            return; // No email template configured
+        }
+
+        // Get selected option names
+        $option_names = array();
+        foreach ($selected_option_ids as $option_id) {
+            $option = $wpdb->get_row($wpdb->prepare(
+                "SELECT name FROM {$wpdb->prefix}timeslot_options WHERE id = %d",
+                $option_id
+            ));
+            if ($option) {
+                $option_names[] = $option->name;
+            }
+        }
+
+        // Build email content
+        $email_content = $form->email_template . "\n\n";
+        $email_content .= __('Selected Options:', 'small-victories-bookings') . "\n";
+        foreach ($option_names as $option_name) {
+            $email_content .= "- " . $option_name . "\n";
+        }
+
+        // Try to get email address from field responses
+        $to_email = '';
+        foreach ($field_responses as $label => $value) {
+            if (strtolower($label) === 'email' && is_email($value)) {
+                $to_email = $value;
+                break;
+            }
+        }
+
+        if (empty($to_email)) {
+            return; // No valid email address found
+        }
+
+        // Send email
+        $subject = sprintf(__('Booking Confirmation - %s', 'small-victories-bookings'), $form->name);
+        wp_mail($to_email, $subject, $email_content);
     }
 
     public function handle_csv_export() {
@@ -457,6 +511,12 @@ class TimeslotBookings {
             $wpdb->query("ALTER TABLE {$wpdb->prefix}timeslot_submissions DROP COLUMN email");
 
             update_option('timeslot_db_version', '2');
+        }
+
+        // Migration to version 3: Add email_template column to forms
+        if (version_compare($from_version, '3', '<')) {
+            $wpdb->query("ALTER TABLE {$wpdb->prefix}timeslot_forms ADD COLUMN email_template LONGTEXT NULL AFTER columns");
+            update_option('timeslot_db_version', '3');
         }
     }
 }

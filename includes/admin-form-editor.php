@@ -39,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['timeslot_form_nonce']
 
     $form_name = sanitize_text_field($_POST['form_name']);
     $columns = intval($_POST['columns']);
+    $email_template = sanitize_textarea_field($_POST['email_template']);
 
     // Process custom fields
     $custom_fields = [];
@@ -58,17 +59,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['timeslot_form_nonce']
         // Update existing form
         $wpdb->update(
             $wpdb->prefix . 'timeslot_forms',
-            array('name' => $form_name, 'columns' => $columns, 'fields' => $fields_json),
+            array('name' => $form_name, 'columns' => $columns, 'fields' => $fields_json, 'email_template' => $email_template),
             array('id' => $form_id),
-            array('%s', '%d', '%s'),
+            array('%s', '%d', '%s', '%s'),
             array('%d')
         );
     } else {
         // Create new form
         $wpdb->insert(
             $wpdb->prefix . 'timeslot_forms',
-            array('name' => $form_name, 'columns' => $columns, 'fields' => $fields_json, 'created_at' => current_time('mysql')),
-            array('%s', '%d', '%s', '%s')
+            array('name' => $form_name, 'columns' => $columns, 'fields' => $fields_json, 'email_template' => $email_template, 'created_at' => current_time('mysql')),
+            array('%s', '%d', '%s', '%s', '%s')
         );
         $form_id = $wpdb->insert_id;
     }
@@ -146,6 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['timeslot_form_nonce']
 
 $form_name = $form ? $form->name : '';
 $columns = $form ? $form->columns : 2;
+$email_template = $form ? $form->email_template : '';
 ?>
 
 <div class="wrap">
@@ -166,6 +168,13 @@ $columns = $form ? $form->columns : 2;
                 <td>
                     <input type="number" name="columns" id="columns" value="<?php echo esc_attr($columns); ?>" min="1" max="6" required>
                     <p class="description">How many columns to display options in.</p>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="email_template">Email Template</label></th>
+                <td>
+                    <textarea name="email_template" id="email_template" rows="8" class="large-text code"><?php echo esc_textarea($email_template); ?></textarea>
+                    <p class="description">This text will be sent in the confirmation email to the user, followed by the list of selected options. Leave empty to disable email notifications.</p>
                 </td>
             </tr>
         </table>
