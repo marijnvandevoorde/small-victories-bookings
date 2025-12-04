@@ -6,15 +6,51 @@ if (!defined('ABSPATH')) {
 // $form is already available from the parent context
 global $wpdb;
 
-$submissions = $wpdb->get_results($wpdb->prepare(
-    "SELECT * FROM {$wpdb->prefix}timeslot_submissions WHERE form_id = %d ORDER BY submitted_at DESC",
-    $form->id
-));
-
 // Get form fields
 $fields = [];
 if (!empty($form->fields)) {
     $fields = json_decode($form->fields, true);
+}
+
+// Get all options with their submissions in a single query
+$results = $wpdb->get_results($wpdb->prepare(
+    "SELECT
+        o.id as option_id,
+        o.name as option_name,
+        o.sort_order,
+        s.id as submission_id,
+        s.response
+     FROM {$wpdb->prefix}timeslot_options o
+     LEFT JOIN {$wpdb->prefix}timeslot_submission_options so ON o.id = so.option_id
+     LEFT JOIN {$wpdb->prefix}timeslot_submissions s ON so.submission_id = s.id
+     WHERE o.form_id = %d
+     ORDER BY o.sort_order ASC, s.submitted_at ASC",
+    $form->id
+));
+
+// Organize results by option
+$options_data = [];
+$max_submissions = 0;
+
+foreach ($results as $row) {
+    $option_id = $row->option_id;
+
+    if (!isset($options_data[$option_id])) {
+        $options_data[$option_id] = [
+            'name' => $row->option_name,
+            'submissions' => []
+        ];
+    }
+
+    // Only add submission if it exists (LEFT JOIN might return null)
+    if ($row->submission_id) {
+        $options_data[$option_id]['submissions'][] = $row->response;
+    }
+}
+
+// Calculate max submissions
+foreach ($options_data as $option) {
+    $max_submissions = max($max_submissions, count($option['submissions']));
 }
 
 // Get page title
@@ -65,7 +101,8 @@ $page_title = sprintf(__('Submissions for: %s', 'small-victories-bookings'), $fo
         th, td {
             padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border: 1px solid #ddd;
+            vertical-align: top;
         }
         th {
             background-color: #f6f7f7;
@@ -75,9 +112,20 @@ $page_title = sprintf(__('Submissions for: %s', 'small-victories-bookings'), $fo
         tr:hover {
             background-color: #f6f7f7;
         }
-        .summary {
-            margin-top: 20px;
+        .option-name {
             font-weight: 600;
+            background-color: #f6f7f7;
+        }
+        .submission-cell {
+            white-space: pre-line;
+            min-width: 150px;
+        }
+        .field-item {
+            margin-bottom: 5px;
+        }
+        .field-label {
+            font-weight: 600;
+            color: #1d2327;
         }
         .empty-state {
             padding: 40px;
@@ -90,50 +138,60 @@ $page_title = sprintf(__('Submissions for: %s', 'small-victories-bookings'), $fo
     <div class="container">
         <h1><?php echo esc_html($page_title); ?></h1>
 
-        <?php if (!empty($submissions)): ?>
+        <?php if (!empty($options_data)): ?>
             <div class="table-wrapper">
                 <table>
                     <thead>
                         <tr>
-                            <?php foreach ($fields as $field): ?>
-                                <th><?php echo esc_html($field['label']); ?></th>
-                            <?php endforeach; ?>
-                            <th><?php _e('Selected Options', 'small-victories-bookings'); ?></th>
-                            <th><?php _e('Submitted At', 'small-victories-bookings'); ?></th>
+                            <th><?php _e('Option', 'small-victories-bookings'); ?></th>
+                            <?php
+                            // Create header columns for submissions
+                            if ($max_submissions == 0) {
+                                echo '<th colspan="100">' . __('No submissions yet', 'small-victories-bookings') . '</th>';
+                            } else {
+                                for ($i = 1; $i <= $max_submissions; $i++) {
+                                    echo '<th>' . sprintf(__('Submission %d', 'small-victories-bookings'), $i) . '</th>';
+                                }
+                            }
+                            ?>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($submissions as $submission): ?>
-                            <?php
-                            $response = json_decode($submission->response, true);
-                            $selected_options = $wpdb->get_results($wpdb->prepare(
-                                "SELECT o.name
-                                 FROM {$wpdb->prefix}timeslot_options o
-                                 INNER JOIN {$wpdb->prefix}timeslot_submission_options so ON o.id = so.option_id
-                                 WHERE so.submission_id = %d
-                                 ORDER BY o.sort_order ASC",
-                                $submission->id
-                            ));
-                            $option_names = array_map(function($opt) { return $opt->name; }, $selected_options);
-                            ?>
+                        <?php foreach ($options_data as $option): ?>
                             <tr>
-                                <?php foreach ($fields as $field): ?>
-                                    <td><?php echo esc_html(isset($response[$field['label']]) ? $response[$field['label']] : ''); ?></td>
-                                <?php endforeach; ?>
-                                <td><?php echo esc_html(implode(', ', $option_names)); ?></td>
-                                <td><?php echo esc_html(date('Y-m-d H:i:s', strtotime($submission->submitted_at))); ?></td>
+                                <td class="option-name"><?php echo esc_html($option['name']); ?></td>
+                                <?php
+                                // Display each submission for this option
+                                foreach ($option['submissions'] as $response_json) {
+                                    $response = json_decode($response_json, true);
+                                    echo '<td class="submission-cell">';
+                                    if (is_array($response)) {
+                                        foreach ($fields as $field) {
+                                            if (isset($response[$field['label']])) {
+                                                echo '<div class="field-item">';
+                                                echo '<span class="field-label">' . esc_html($field['label']) . ':</span> ';
+                                                echo esc_html($response[$field['label']]);
+                                                echo '</div>';
+                                            }
+                                        }
+                                    }
+                                    echo '</td>';
+                                }
+
+                                // Fill remaining columns with empty cells
+                                $submission_count = count($option['submissions']);
+                                for ($i = $submission_count; $i < $max_submissions; $i++) {
+                                    echo '<td></td>';
+                                }
+                                ?>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
-
-            <p class="summary">
-                <strong><?php _e('Total submissions:', 'small-victories-bookings'); ?></strong> <?php echo count($submissions); ?>
-            </p>
         <?php else: ?>
             <div class="empty-state">
-                <p><?php _e('No submissions yet for this form.', 'small-victories-bookings'); ?></p>
+                <p><?php _e('No options available for this form.', 'small-victories-bookings'); ?></p>
             </div>
         <?php endif; ?>
     </div>

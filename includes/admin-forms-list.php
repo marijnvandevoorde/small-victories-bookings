@@ -57,6 +57,9 @@ $forms = $wpdb->get_results("SELECT * FROM {$wpdb->prefix}timeslot_forms ORDER B
                         <td><code>[timeslot_form id="<?php echo $form->id; ?>"]</code></td>
                         <td>
                             <a href="<?php echo admin_url('admin.php?page=sv-bookings-new&form_id=' . $form->id); ?>">Edit</a> |
+                            <?php if (!empty($form->share_key)): ?>
+                                <a href="<?php echo esc_url(home_url('?sv_bookings_share=' . $form->share_key)); ?>" target="_blank">Share</a> |
+                            <?php endif; ?>
                             <a href="<?php echo admin_url('admin.php?page=sv-bookings&action=delete&form_id=' . $form->id); ?>"
                                onclick="return confirm('Are you sure you want to delete this form? All submissions will be lost.');">Delete</a>
                         </td>
