@@ -3,7 +3,7 @@
  * Plugin Name: Small Victories Bookings
  * Plugin URI: https://small-victories.co
  * Description: Allows visitors to submit their contact info and select available options with stock management
- * Version: 1.0.4
+ * Version: 1.0.7
  * Author: Small Victories
  * License: GPL v2 or later
  * Text Domain: small-victories-bookings
@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('TIMESLOT_VERSION', '1.0.6');
+define('TIMESLOT_VERSION', '1.0.7');
 define('TIMESLOT_DB_VERSION', '4'); // Database schema version
 define('TIMESLOT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('TIMESLOT_PLUGIN_URL', plugin_dir_url(__FILE__));

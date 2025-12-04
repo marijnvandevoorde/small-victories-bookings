@@ -75,12 +75,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['timeslot_form_nonce']
         $form_id = $wpdb->insert_id;
     }
 
-    // Handle batch import
-    if (!empty($_POST['batch_import'])) {
+    // Handle batch import (only for new forms or when explicitly used)
+    if (!empty($_POST['batch_import']) && !empty(trim($_POST['batch_import']))) {
         $lines = explode("\n", $_POST['batch_import']);
         $sort_order = 0;
 
-        // Delete existing options
+        // Only delete existing options if this is a batch import
         $wpdb->delete($wpdb->prefix . 'timeslot_options', array('form_id' => $form_id), array('%d'));
 
         foreach ($lines as $line) {
@@ -107,23 +107,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['timeslot_form_nonce']
             );
         }
     } elseif (isset($_POST['options'])) {
-        // Handle individual option updates
-        $wpdb->delete($wpdb->prefix . 'timeslot_options', array('form_id' => $form_id), array('%d'));
+        // Handle individual option updates - UPDATE existing, INSERT new, DELETE removed
+        $existing_option_ids = array();
+        $submitted_option_ids = array();
 
         $sort_order = 0;
         foreach ($_POST['options'] as $option_data) {
             if (empty($option_data['name'])) continue;
 
-            $wpdb->insert(
-                $wpdb->prefix . 'timeslot_options',
-                array(
-                    'form_id' => $form_id,
-                    'name' => sanitize_text_field($option_data['name']),
-                    'availability' => intval($option_data['availability']),
-                    'sort_order' => $sort_order++
-                ),
-                array('%d', '%s', '%d', '%d')
-            );
+            $option_id = isset($option_data['id']) ? intval($option_data['id']) : 0;
+
+            if ($option_id > 0) {
+                // Update existing option
+                $wpdb->update(
+                    $wpdb->prefix . 'timeslot_options',
+                    array(
+                        'name' => sanitize_text_field($option_data['name']),
+                        'availability' => intval($option_data['availability']),
+                        'sort_order' => $sort_order
+                    ),
+                    array('id' => $option_id),
+                    array('%s', '%d', '%d'),
+                    array('%d')
+                );
+                $submitted_option_ids[] = $option_id;
+            } else {
+                // Insert new option
+                $wpdb->insert(
+                    $wpdb->prefix . 'timeslot_options',
+                    array(
+                        'form_id' => $form_id,
+                        'name' => sanitize_text_field($option_data['name']),
+                        'availability' => intval($option_data['availability']),
+                        'sort_order' => $sort_order
+                    ),
+                    array('%d', '%s', '%d', '%d')
+                );
+                $submitted_option_ids[] = $wpdb->insert_id;
+            }
+
+            $sort_order++;
+        }
+
+        // Delete options that were removed (not in submitted list)
+        if (!empty($submitted_option_ids)) {
+            $placeholders = implode(',', array_fill(0, count($submitted_option_ids), '%d'));
+            $wpdb->query($wpdb->prepare(
+                "DELETE FROM {$wpdb->prefix}timeslot_options WHERE form_id = %d AND id NOT IN ($placeholders)",
+                array_merge(array($form_id), $submitted_option_ids)
+            ));
+        } else {
+            // All options were removed
+            $wpdb->delete($wpdb->prefix . 'timeslot_options', array('form_id' => $form_id), array('%d'));
         }
     }
 
@@ -211,6 +246,18 @@ $email_template = $form ? $form->email_template : '';
 
         <div style="margin-bottom: 20px;">
             <h3>Batch Import</h3>
+            <?php if ($form_id): ?>
+                <?php
+                $submission_count = $wpdb->get_var($wpdb->prepare(
+                    "SELECT COUNT(*) FROM {$wpdb->prefix}timeslot_submissions WHERE form_id = %d",
+                    $form_id
+                ));
+                if ($submission_count > 0): ?>
+                    <div class="notice notice-warning inline" style="margin: 10px 0; padding: 10px;">
+                        <p><strong>Warning:</strong> This form has <?php echo $submission_count; ?> submission(s). Using batch import will delete all existing options and their submission links. Use manual options instead to preserve data.</p>
+                    </div>
+                <?php endif; ?>
+            <?php endif; ?>
             <p class="description">Paste options in the format: <code>Option Name;10</code> (one per line, where 10 is the availability)</p>
             <textarea name="batch_import" rows="10" class="large-text code" placeholder="Option 1;5&#10;Option 2;10&#10;Option 3;3"></textarea>
         </div>
@@ -222,6 +269,7 @@ $email_template = $form ? $form->email_template : '';
                 <?php if (!empty($options)): ?>
                     <?php foreach ($options as $index => $option): ?>
                         <div class="option-row" style="margin-bottom: 10px; display: flex; gap: 10px; align-items: center;">
+                            <input type="hidden" name="options[<?php echo $index; ?>][id]" value="<?php echo esc_attr($option->id); ?>">
                             <input type="text" name="options[<?php echo $index; ?>][name]" value="<?php echo esc_attr($option->name); ?>" placeholder="Option name" class="regular-text">
                             <input type="number" name="options[<?php echo $index; ?>][availability]" value="<?php echo esc_attr($option->availability); ?>" placeholder="Availability" min="0" style="width: 100px;">
                             <button type="button" class="button remove-option">Remove</button>
