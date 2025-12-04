@@ -65,11 +65,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['timeslot_form_nonce']
             array('%d')
         );
     } else {
-        // Create new form
+        // Create new form with share key
+        $share_key = wp_generate_uuid4();
         $wpdb->insert(
             $wpdb->prefix . 'timeslot_forms',
-            array('name' => $form_name, 'columns' => $columns, 'fields' => $fields_json, 'email_template' => $email_template, 'created_at' => current_time('mysql')),
-            array('%s', '%d', '%s', '%s', '%s')
+            array('name' => $form_name, 'columns' => $columns, 'fields' => $fields_json, 'email_template' => $email_template, 'share_key' => $share_key, 'created_at' => current_time('mysql')),
+            array('%s', '%d', '%s', '%s', '%s', '%s')
         );
         $form_id = $wpdb->insert_id;
     }
@@ -249,6 +250,16 @@ $email_template = $form ? $form->email_template : '';
             <p>Use this shortcode to display the form on any page or post:</p>
             <code style="font-size: 14px;">[timeslot_form id="<?php echo $form_id; ?>"]</code>
         </div>
+
+        <?php if ($form && !empty($form->share_key)): ?>
+            <div style="margin-top: 20px; padding: 15px; background: #f0f0f1; border-left: 4px solid #72aee6;">
+                <h3>Share Submissions</h3>
+                <p>Share this link to allow others to view submissions without logging in:</p>
+                <code style="font-size: 14px;"><?php echo home_url('?sv_bookings_share=' . $form->share_key); ?></code>
+                <br><br>
+                <a href="<?php echo esc_url(home_url('?sv_bookings_share=' . $form->share_key)); ?>" class="button" target="_blank">Open Shared View</a>
+            </div>
+        <?php endif; ?>
     <?php endif; ?>
 </div>
 

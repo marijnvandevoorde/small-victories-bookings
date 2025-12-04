@@ -14,8 +14,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('TIMESLOT_VERSION', '1.0.5');
-define('TIMESLOT_DB_VERSION', '3'); // Database schema version
+define('TIMESLOT_VERSION', '1.0.6');
+define('TIMESLOT_DB_VERSION', '4'); // Database schema version
 define('TIMESLOT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('TIMESLOT_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -40,6 +40,7 @@ class TimeslotBookings {
         add_action('wp_ajax_nopriv_timeslot_submit', array($this, 'handle_submission'));
         add_action('admin_init', array($this, 'handle_csv_export'));
         add_action('wp_dashboard_setup', array($this, 'add_dashboard_widget'));
+        add_action('template_redirect', array($this, 'handle_public_share'));
         add_shortcode('timeslot_form', array($this, 'render_shortcode'));
     }
 
@@ -64,8 +65,10 @@ class TimeslotBookings {
             name varchar(255) NOT NULL,
             columns int(11) DEFAULT 2,
             email_template LONGTEXT NULL,
+            share_key varchar(36) NULL,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
-            PRIMARY KEY (id)
+            PRIMARY KEY (id),
+            UNIQUE KEY share_key (share_key)
         ) $charset_collate;";
 
         // Options table
@@ -167,6 +170,27 @@ class TimeslotBookings {
 
     public function render_submissions() {
         require_once TIMESLOT_PLUGIN_DIR . 'includes/admin-submissions.php';
+    }
+
+    public function handle_public_share() {
+        if (!isset($_GET['sv_bookings_share'])) {
+            return;
+        }
+
+        $share_key = sanitize_text_field($_GET['sv_bookings_share']);
+
+        global $wpdb;
+        $form = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}timeslot_forms WHERE share_key = %s",
+            $share_key
+        ));
+
+        if (!$form) {
+            wp_die(__('Invalid share link.', 'small-victories-bookings'));
+        }
+
+        require_once TIMESLOT_PLUGIN_DIR . 'includes/public-share-view.php';
+        exit;
     }
 
     public function render_shortcode($atts) {
@@ -517,6 +541,27 @@ class TimeslotBookings {
         if (version_compare($from_version, '3', '<')) {
             $wpdb->query("ALTER TABLE {$wpdb->prefix}timeslot_forms ADD COLUMN email_template LONGTEXT NULL AFTER columns");
             update_option('timeslot_db_version', '3');
+        }
+
+        // Migration to version 4: Add share_key column to forms
+        if (version_compare($from_version, '4', '<')) {
+            $wpdb->query("ALTER TABLE {$wpdb->prefix}timeslot_forms ADD COLUMN share_key varchar(36) NULL AFTER email_template");
+            $wpdb->query("ALTER TABLE {$wpdb->prefix}timeslot_forms ADD UNIQUE KEY share_key (share_key)");
+
+            // Generate share keys for existing forms
+            $forms = $wpdb->get_results("SELECT id FROM {$wpdb->prefix}timeslot_forms WHERE share_key IS NULL");
+            foreach ($forms as $form) {
+                $share_key = wp_generate_uuid4();
+                $wpdb->update(
+                    $wpdb->prefix . 'timeslot_forms',
+                    array('share_key' => $share_key),
+                    array('id' => $form->id),
+                    array('%s'),
+                    array('%d')
+                );
+            }
+
+            update_option('timeslot_db_version', '4');
         }
     }
 }
