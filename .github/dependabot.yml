@@ -1,0 +1,22 @@
+# Dependabot configuration.
+# Docs: https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+#
+# The plugin has no Composer or npm dependencies; only the actions in
+# .github/workflows/ are tracked. Minor + patch updates are grouped into one PR
+# and merged by .github/workflows/dependabot-auto-merge.yml once CI passes.
+# Major updates get their own PR for manual review.
+version: 2
+updates:
+  # Actions used by workflows in .github/workflows/.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      github-actions-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
