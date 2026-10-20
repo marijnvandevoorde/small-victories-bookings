@@ -1,5 +1,7 @@
 # Small Victories Bookings
 
+> **No longer actively maintained.** The code stays available as is. Forks are welcome; issues and pull requests may not get an answer.
+
 A flexible WordPress plugin for managing bookings with custom forms and availability tracking.
 
 ## Features
