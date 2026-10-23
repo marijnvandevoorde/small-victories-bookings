@@ -13,3 +13,6 @@
 *~
 *.swp
 *.swo
+
+# Claude Code (per user)
+.claude/settings.local.json
