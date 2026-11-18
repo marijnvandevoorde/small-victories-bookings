@@ -5,6 +5,9 @@ name: CI
 # Dependabot's GitHub Actions updates: the bumped actions run here.
 on:
   pull_request:
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
   workflow_dispatch:
 
 permissions:
